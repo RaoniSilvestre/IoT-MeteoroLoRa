@@ -3,6 +3,7 @@
 #include "esp_err.h"
 #include "freertos/event_groups.h"
 #include "freertos/queue.h"
+#include "message_types.h"
 
 #define RADIO_EV_RECIEVED (1<<0)
 

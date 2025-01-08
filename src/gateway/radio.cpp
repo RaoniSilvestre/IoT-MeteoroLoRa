@@ -23,7 +23,7 @@ esp_err_t radio_init() {
 
     radio_event_group = xEventGroupCreate();
     radio_status_queue = xQueueCreate(5, sizeof(radio_status_t));
-    radio_data_queue = xQueueCreate(5, sizeof(uint8_t) * 100);
+    radio_data_queue = xQueueCreate(5, sizeof(radio_message_t));
 
     spi_bus.begin(LORA_SCK_PIN, LORA_MISO_PIN, LORA_MOSI_PIN, LORA_CS_PIN);
 
@@ -77,15 +77,15 @@ err:
 esp_err_t radio_receive_data() {
     esp_err_t ret = ESP_OK;
 
-    uint8_t pkt_len = radio.getPacketLength();
+    radio_message_t *message;
 
-    uint8_t data[pkt_len];
-
-    int status = radio.receive(data, pkt_len);
+    int status = radio.receive((uint8_t *)message->type, 1);
 
     ESP_GOTO_ON_FALSE(status == RADIOLIB_ERR_NONE, ESP_FAIL, err, "LoRa Radio", "Falha ao receber pacote LoRa.");
 
-    xQueueSend(radio_data_queue, data, portMAX_DELAY);
+    status = radio.receive(message->data);
+
+    xQueueSend(radio_data_queue, message, portMAX_DELAY);
     
     radio_get_status();
 
