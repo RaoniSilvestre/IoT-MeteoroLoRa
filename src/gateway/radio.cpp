@@ -22,6 +22,8 @@ esp_err_t radio_init() {
     esp_err_t ret = ESP_OK;
 
     radio_event_group = xEventGroupCreate();
+    radio_status_queue = xQueueCreate(5, sizeof(radio_status_t));
+    radio_data_queue = xQueueCreate(5, sizeof(uint8_t) * 100);
 
     spi_bus.begin(LORA_SCK_PIN, LORA_MISO_PIN, LORA_MOSI_PIN, LORA_CS_PIN);
 
@@ -59,15 +61,34 @@ err:
     return ret;
 }
 
-esp_err_t radio_receive_data(String data, radio_status_t *radio_status) {
+esp_err_t radio_standby() {
     esp_err_t ret = ESP_OK;
 
-    int status = radio.readData(data);
+    int status = radio.standby();
+    
+    ESP_GOTO_ON_FALSE(status == RADIOLIB_ERR_NONE, ESP_FAIL, err, "LoRa Radio", "Falha ao entrar no modo standby do rádio LoRa.");
+
+err:
+    // XXX Pânico
+    Serial.printf("Falha ao entrar no modo standby do rádio LoRa, status: %d\n", status);
+    return ret;
+}
+
+esp_err_t radio_receive_data() {
+    esp_err_t ret = ESP_OK;
+
+    uint8_t pkt_len = radio.getPacketLength();
+
+    uint8_t data[pkt_len];
+
+    int status = radio.receive(data, pkt_len);
 
     ESP_GOTO_ON_FALSE(status == RADIOLIB_ERR_NONE, ESP_FAIL, err, "LoRa Radio", "Falha ao receber pacote LoRa.");
 
-    radio_get_status(radio_status);
+    xQueueSend(radio_data_queue, data, portMAX_DELAY);
     
+    radio_get_status();
+
     return ESP_OK;
 
 err:
@@ -79,8 +100,10 @@ err:
     return ret;
 }
 
-void radio_get_status(radio_status_t *radio_status) {
+void radio_get_status() {
+    radio_status_t *radio_status;
     radio_status->RSSI = radio.getRSSI();
     radio_status->SNR = radio.getSNR();
     radio_status->freq_error = radio.getFrequencyError();
+    xQueueSend(radio_status_queue, radio_status, portMAX_DELAY);
 }
