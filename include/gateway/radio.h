@@ -7,7 +7,6 @@
 #define RADIO_EV_RECIEVED (1<<0)
 
 typedef struct radio_status_t {
-
     float RSSI;
     float SNR;
     float freq_error;
