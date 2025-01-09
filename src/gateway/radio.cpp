@@ -5,6 +5,10 @@
 #include "gateway/radio.h"
 #include "gateway/config.h"
 
+EventGroupHandle_t radio_event_group;
+QueueHandle_t radio_status_queue;
+QueueHandle_t radio_data_queue;
+
 SPIClass spi_bus;
 SPISettings spi_settings;
 

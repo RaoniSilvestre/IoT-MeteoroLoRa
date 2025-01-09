@@ -13,9 +13,9 @@ typedef struct radio_status_t {
     float freq_error;
 } radio_status_t;
 
-EventGroupHandle_t radio_event_group;
-QueueHandle_t radio_status_queue;
-QueueHandle_t radio_data_queue;
+extern EventGroupHandle_t radio_event_group;
+extern QueueHandle_t radio_status_queue;
+extern QueueHandle_t radio_data_queue;
 
 esp_err_t radio_init();
 esp_err_t radio_start_receiving();
