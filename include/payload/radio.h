@@ -7,7 +7,7 @@
 
 #define RADIO_EV_TRANSMITTED (1<<0)
 
-EventGroupHandle_t radio_event_group;
+extern EventGroupHandle_t radio_event_group;
 
 esp_err_t radio_init();
 esp_err_t radio_transmit_data(radio_message_t *radio_message);
