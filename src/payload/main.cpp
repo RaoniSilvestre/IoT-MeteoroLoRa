@@ -38,15 +38,30 @@ void setup() {
 }
 
 void loop() {
-    if (magneto_read_data(mag_data) == ESP_OK) {
-        azimuth = atan2(mag_data->y,mag_data->x) * 180.0/PI;
-        azimuth += MAG_DECLINATION_ANGLE;
-        azimuth += azimuth < 0 ? 360 : 0;
+    int16_t x = 0, y = 0, z = 0;
+    float temp = 0, humd = 0;
 
-        Serial.printf("X: %d, Y: %d, Z: %d, Heading: %.2fº\n", mag_data->x, mag_data->y, mag_data->z, azimuth);
+    for (int i = 0; i < 10; i++) {
+        if (magneto_read_data(mag_data) == ESP_OK) {
+            x += mag_data->x;
+            y += mag_data->y;
+            z += mag_data->z;
+        }
+        if (termo_read_data(termo_data) == ESP_OK) {
+            temp += termo_data->temp;
+            humd += termo_data->humd;
+        }
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
-    if (termo_read_data(termo_data) == ESP_OK) {
-        Serial.printf("Temperatura: %.2fºC, Umidade: %.2f%%\n", termo_data->temp, termo_data->humd);
-    }
+    mag_data->x = x / 10;
+    mag_data->y = y / 10;
+    mag_data->z = z / 10;
+    termo_data->temp = temp / 10;
+    termo_data->humd = humd / 10;
+    azimuth = atan2(mag_data->y,mag_data->x) * 180.0/PI;
+    azimuth += MAG_DECLINATION_ANGLE;
+    azimuth += azimuth < 0 ? 360 : 0;
+    Serial.printf("X: %d, Y: %d, Z: %d, Heading: %.2fº\n", mag_data->x, mag_data->y, mag_data->z, azimuth);
+    Serial.printf("Temperatura: %.2fºC, Umidade: %.2f%%\n", termo_data->temp, termo_data->humd);
     vTaskDelay(pdMS_TO_TICKS(100));
 }
