@@ -2,3 +2,5 @@
 
 #define I2C_SDA_PIN GPIO_NUM_8
 #define I2C_SCL_PIN GPIO_NUM_9
+
+#define MAG_DECLINATION_ANGLE -20.45
