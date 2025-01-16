@@ -3,21 +3,7 @@
 #include <stdint.h>
 #include "esp_err.h"
 
-
-#define QMC5883L_ADDRESS 0x0D
-
-#define QMC5883L_REG_X_LSB 0x00
-#define QMC5883L_REG_X_MSB 0x01
-#define QMC5883L_REG_Y_LSB 0x02
-#define QMC5883L_REG_Y_MSB 0x03
-#define QMC5883L_REG_Z_LSB 0x04
-#define QMC5883L_REG_Z_MSB 0x05
-#define QMC5883L_REG_STATUS 0x06
-#define QMC5883L_REG_TEMP_LSB 0x07
-#define QMC5883L_REG_TEMP_MSB 0x08
-#define QMC5883L_REG_CTRL_1 0x09
-#define QMC5883L_REG_CTRL_2 0x0A
-#define QMC5883L_REG_SET_RESET_PERIOD 0x0B
+#define QMC5883L_ADDR 0x0D
 
 #define QMC5883L_CTRL_1_MODE_STANDBY 0x00
 #define QMC5883L_CTRL_1_MODE_CONTINUOUS 0x01
@@ -49,5 +35,6 @@ typedef struct {
 esp_err_t magneto_init();
 esp_err_t magneto_set_mode(uint8_t mode, uint8_t odr, uint8_t rng, uint8_t osr);
 esp_err_t magneto_soft_reset();
-esp_err_t magneto_read(magneto_data_t *data);
+esp_err_t magneto_read_status(uint8_t *status);
+esp_err_t magneto_read_data(magneto_data_t *data);
 esp_err_t magneto_read_temp(int16_t *temp);
