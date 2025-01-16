@@ -35,18 +35,19 @@ esp_err_t magneto_soft_reset() {
 }
 
 esp_err_t magneto_read_status(uint8_t *status) {
-    uint8_t *magneto_status;
-    if (sensor_read_reg(QMC5883L_ADDR, QMC5883L_REG_STATUS, magneto_status) != ESP_OK) {
+    if (sensor_read_reg(QMC5883L_ADDR, QMC5883L_REG_STATUS, status) != ESP_OK) {
         Serial.println("[Magneto] Falha ao ler status");
         return ESP_FAIL;
     }
-    status = magneto_status;
+    return ESP_OK;
 }
 
 esp_err_t magneto_read_data(magneto_data_t *data) {
-    uint8_t *status;
-    magneto_read_status(status);
-    if (!(*status & 0x01)) {
+    uint8_t status;
+    if (magneto_read_status(&status) != ESP_OK) {
+        return ESP_FAIL;
+    }
+    if (!(status & 0x01)) {
         Serial.println("[Magneto] Dados não prontos");
         return ESP_FAIL;
     }
