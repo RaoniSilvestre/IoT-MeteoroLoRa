@@ -30,7 +30,6 @@ esp_err_t sensor_write_reg(uint8_t addr, uint8_t reg, uint8_t data) {
 }
 
 esp_err_t sensor_read_cmd(uint8_t addr, uint8_t *cmd) {
-    Wire.beginTransmission(addr);
     Wire.requestFrom(addr, 1);
     if (!Wire.available()) {
         Serial.println("[I²C] Nenhum dado disponível");
@@ -41,7 +40,6 @@ esp_err_t sensor_read_cmd(uint8_t addr, uint8_t *cmd) {
 }
 
 esp_err_t sensor_read_cmd(uint8_t addr, uint8_t *cmd, size_t len) {
-    Wire.beginTransmission(addr);
     Wire.requestFrom(addr, len);
     if (Wire.available() < len) {
         Serial.println("[I²C] Dados insuficientes");
