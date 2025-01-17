@@ -34,7 +34,7 @@ esp_err_t termo_read_status(uint8_t *status) {
 }
 
 esp_err_t termo_read_data(termo_data_t *data) {
-    if (sensor_write_reg(AHT10_ADDR, AHT10_CMD_TRIG_MEASURE, 0x00) != ESP_OK ) {
+    if (sensor_write_cmd(AHT10_ADDR, AHT10_CMD_TRIG_MEASURE) != ESP_OK ) {
         Serial.println("[Termo] Falha ao enviar comando de medição");
         return ESP_FAIL;
     }
@@ -49,10 +49,9 @@ esp_err_t termo_read_data(termo_data_t *data) {
             return ESP_FAIL;
         }
     } else if (status & AHT10_STATUS_BUSY) {
-        Serial.println("[Termo] Sensor ocupado, aguardando");
+        //Serial.println("[Termo] Sensor ocupado, aguardando");
         vTaskDelay(pdMS_TO_TICKS(AHT10_MEASURE_TIME_MS));
     }
-    
     uint8_t buffer[6];
     if (sensor_read_cmd(AHT10_ADDR, buffer, 6) != ESP_OK) {
         Serial.println("[Termo] Falha ao ler dados do sensor");
