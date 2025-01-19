@@ -14,7 +14,7 @@ void magneto_task(void *args) {
         int16_t x = 0, y = 0, z = 0;
         float temp = 0, humd = 0;
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 10; i++) {
             if (magneto_read_data(&mag_data) == ESP_OK) {
                 x += mag_data.x;
                 y += mag_data.y;
@@ -26,12 +26,12 @@ void magneto_task(void *args) {
             }
             //vTaskDelay(pdMS_TO_TICKS(100));
         }
-        mag_data.x = x / 100;
-        mag_data.y = y / 100;
-        mag_data.z = z / 100;
+        mag_data.x = x / 10;
+        mag_data.y = y / 10;
+        mag_data.z = z / 10;
 
-        termo_data.temp = temp / 100;
-        termo_data.humd = humd / 100;
+        termo_data.temp = temp / 10;
+        termo_data.humd = humd / 10;
 
         azimuth = atan2(mag_data.y,mag_data.x) * 180.0/PI;
         azimuth += MAG_DECLINATION_ANGLE;
@@ -141,11 +141,12 @@ void setup() {
     if (termo_init() != ESP_OK) {
         Serial.println("[Termo] Falha ao inicializar o sensor");
     }
-    if (accel_gyro_init() != ESP_OK) {
+    xTaskCreate(magneto_task, "Magneto Task", 2048, NULL, 5, NULL);
+    /*if (accel_gyro_init() != ESP_OK) {
         Serial.println("[Accel/Gyro] Falha ao inicializar o sensor");
-    }
-    //xTaskCreate(magneto_task, "Magneto Task", 2048, NULL, 5, NULL);
-    xTaskCreate(accel_gyro_task, "Accel Task", 2048, NULL, 5, NULL);
+    }*/
+
+    //xTaskCreate(accel_gyro_task, "Accel Task", 2048, NULL, 5, NULL);
 }
 
 void loop() {
