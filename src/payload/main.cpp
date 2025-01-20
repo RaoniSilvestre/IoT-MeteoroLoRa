@@ -205,6 +205,10 @@ void accel_gyro_task(void *args) {
                 gyro_data.y /= 65.5;
                 gyro_data.z /= 65.5;
 
+                gyro_data.x -= gx_cal;
+                gyro_data.y -= gy_cal;
+                gyro_data.z -= gz_cal;
+
                 xQueueSend(gyro_queue, &gyro_data, pdMS_TO_TICKS(300));
             }
             xSemaphoreGive(i2c_mutex);
