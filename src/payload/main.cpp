@@ -1,4 +1,5 @@
 #include "payload/main.h"
+#include "payload/radio.h"
 
 void consume_task(void *args) {
     nav_data_t nav_data;
@@ -263,7 +264,7 @@ void setup() {
     Serial.begin(115200);
     GPS_SERIAL.begin(9600, SERIAL_8N1, GPS_UART_RX_PIN, GPS_UART_TX_PIN);
     Wire.begin();
-    
+    //Serial.println(esp_err_to_name(radio_init()));
     task_com_init();
     
     if (termo_init() != ESP_OK) {
@@ -293,4 +294,10 @@ void setup() {
     xTaskCreate(consume_task, "[Cons] Task", 2048, NULL, 1, NULL);
 }
 
-void loop() {}
+void loop() {
+    /*radio_message_t data = {MSG_TYPE_PRESSURE, "Olá Mundo!."};
+    if (radio_transmit_data(&data) == ESP_OK) {
+        Serial.println("Dados transmitidos: " + data.data);
+    }
+    vTaskDelay(1000);*/
+}
