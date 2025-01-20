@@ -27,7 +27,7 @@ esp_err_t magneto_init() {
         Serial.println("[Magneto] Falha ao configurar o registrador de controle do sensor");
         return ESP_FAIL;
     }
-    Serial.println("[Magneto] Calibrando o sensor");
+    vTaskDelay(pdMS_TO_TICKS(100));
     if (magneto_calibrate() != ESP_OK) {
         Serial.println("[Magneto] Falha na calibração do sensor, utilizando valores padrão");
         return ESP_FAIL;
@@ -71,7 +71,7 @@ esp_err_t magneto_calibrate() {
 	unsigned long start_time = millis();
 
 	while((millis() - start_time) < 10000) {
-        vTaskDelay(pdMS_TO_TICKS(10));
+        vTaskDelay(pdMS_TO_TICKS(100));
 		if(magneto_read_data(&data) != ESP_OK) {
             Serial.println("[Magneto] Falha na leitura do sensor para calibração");
             _offset[0] = _offset[1] = _offset[2] = 0;
@@ -118,7 +118,7 @@ esp_err_t magneto_calibrate() {
     _scale[0] = avg_delta / x_avg_delta;
     _scale[1] = avg_delta / y_avg_delta;
     _scale[2] = avg_delta / z_avg_delta;
-
+    Serial.println("[Magneto] Sensor calibrado");
     return ESP_OK;
 }
 
