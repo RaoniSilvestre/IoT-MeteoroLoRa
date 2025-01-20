@@ -4,6 +4,7 @@
 #include "payload/termo.h"
 #include "payload/accel_gyro.h"
 #include "payload/baro.h"
+#include "payload/gps.h"
 #include "payload/config.h"
 
 QueueHandle_t accel_queue;
@@ -13,6 +14,7 @@ QueueHandle_t magneto_amb_queue;
 QueueHandle_t termo_queue;
 QueueHandle_t baro_nav_queue;
 QueueHandle_t baro_amb_queue;
+QueueHandle_t gps_queue;
 
 QueueHandle_t nav_data_queue;
 QueueHandle_t amb_data_queue;
@@ -27,6 +29,7 @@ void task_com_init() {
     termo_queue = xQueueCreate(5, sizeof(termo_data_t));
     baro_amb_queue = xQueueCreate(5, sizeof(baro_data_t));
     baro_nav_queue = xQueueCreate(5, sizeof(baro_data_t));
+    gps_queue = xQueueCreate(5, sizeof(gps_data_t));
 
     nav_data_queue = xQueueCreate(5, sizeof(nav_data_t));
     amb_data_queue = xQueueCreate(5, sizeof(amb_data_t));

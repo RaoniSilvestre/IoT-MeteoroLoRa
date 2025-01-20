@@ -16,10 +16,10 @@ typedef struct {
 } amb_data_t;
 
 typedef struct {
-    float alt;
-    float vel;
-    float head;
-    String lati, longi;
+    double alt;
+    double vel;
+    double head;
+    double lati, longi;
 } nav_data_t;
 
 extern QueueHandle_t accel_queue;
@@ -29,6 +29,7 @@ extern QueueHandle_t magneto_amb_queue;
 extern QueueHandle_t termo_queue;
 extern QueueHandle_t baro_nav_queue;
 extern QueueHandle_t baro_amb_queue;
+extern QueueHandle_t gps_queue;
 
 extern QueueHandle_t nav_data_queue;
 extern QueueHandle_t amb_data_queue;

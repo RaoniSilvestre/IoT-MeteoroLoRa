@@ -6,9 +6,9 @@ void consume_task(void *args) {
 
     for (;;) {
         if (xQueueReceive(amb_data_queue, &amb_data, pdMS_TO_TICKS(300))) {
-            Serial.println("==============================");
-            Serial.println("          Ambient Data        ");
-            Serial.println("==============================");
+            Serial.println("=================================");
+            Serial.println("           Ambient Data          ");
+            Serial.println("=================================");
             
             Serial.print("Temp: ");
             Serial.print(amb_data.temp);
@@ -27,15 +27,22 @@ void consume_task(void *args) {
             Serial.println("mT");
         }
         if (xQueueReceive(nav_data_queue, &nav_data, pdMS_TO_TICKS(300))) {
-            Serial.println("==============================");
-            Serial.println("        Navigation Data       ");
-            Serial.println("==============================");
+            Serial.println("=================================");
+            Serial.println("          Navigation Data        ");
+            Serial.println("=================================");
             
             Serial.print("Alt: ");
             Serial.print(nav_data.alt);
-            Serial.print("m, Head:");
+            Serial.print("m, Vel:");
+            Serial.print(nav_data.vel);
+            Serial.print("m/s, Head: ");
             Serial.print(nav_data.head);
-            Serial.println("º");
+            Serial.println("°");
+
+            Serial.print("Lat: ");
+            Serial.print(nav_data.lati, 6);
+            Serial.print(", Long: ");
+            Serial.println(nav_data.longi, 6);
         }
     }
 }
@@ -48,37 +55,55 @@ void nav_task(void *args) {
 
     float azimuth;
 
+    gps_data_t gps_data;
+
+    double avg_alt = 0;
+
     nav_data_t nav_data;
 
     for (;;) {
-        if (xQueueReceive(baro_nav_queue, &baro_data, portMAX_DELAY) == pdTRUE) {
-            nav_data.alt = baro_data.altitude;   
-        }
-        if (xQueueReceive(magneto_nav_queue, &magneto_data, portMAX_DELAY) == pdTRUE) {
+        if (xQueueReceive(baro_nav_queue, &baro_data, pdMS_TO_TICKS(300)) == pdTRUE);
+        if (xQueueReceive(magneto_nav_queue, &magneto_data, pdMS_TO_TICKS(300)) == pdTRUE) {
             azimuth = atan2(magneto_data.y,magneto_data.x) * 180.0/PI;
             azimuth += MAG_DECLINATION_ANGLE;
             azimuth += azimuth < 0 ? 360 : 0;
 
             nav_data.head = azimuth;
         }
-        if (xQueueReceive(accel_queue, &accel_data, portMAX_DELAY) == pdTRUE) {
-            /*Serial.print("aX: ");
+        if (xQueueReceive(accel_queue, &accel_data, pdMS_TO_TICKS(300)) == pdTRUE) {
+            Serial.println("=================================");
+            Serial.println("        Acceleration Data        ");
+            Serial.println("=================================");
+
+            Serial.print("aX: ");
             Serial.print(accel_data.x);
             Serial.print("g, aY: ");
             Serial.print(accel_data.y);
             Serial.print("g, aZ: ");
             Serial.print(accel_data.z);
-            Serial.println("g");*/
+            Serial.println("g");
         }
-        if (xQueueReceive(gyro_queue, &gyro_data, portMAX_DELAY) == pdTRUE) {
-            /*Serial.print("gX: ");
+        if (xQueueReceive(gyro_queue, &gyro_data, pdMS_TO_TICKS(300)) == pdTRUE) {
+            Serial.println("=================================");
+            Serial.println("          Rotation Data          ");
+            Serial.println("=================================");
+            
+            Serial.print("gX: ");
             Serial.print(gyro_data.x);
             Serial.print("°/s, gY: ");
             Serial.print(gyro_data.y);
             Serial.print("°/s, gZ: ");
             Serial.print(gyro_data.z);
-            Serial.println("°/s");*/
+            Serial.println("°/s");
         }
+        if (xQueueReceive(gps_queue, &gps_data, pdMS_TO_TICKS(300)) == pdTRUE) {
+            nav_data.lati = gps_data.lati;
+            nav_data.longi = gps_data.longi;
+            nav_data.vel = gps_data.vel;
+            nav_data.head = gps_data.head;
+        }
+        avg_alt = (baro_data.altitude + gps_data.alt) / 2;
+        nav_data.alt = avg_alt;
         xQueueSend(nav_data_queue, &nav_data, portMAX_DELAY);
     }
     vTaskDelete(NULL);
@@ -94,13 +119,13 @@ void amb_task(void *args) {
     float avg_temp = 0;
 
     for (;;) {
-        if (xQueueReceive(baro_amb_queue, &baro_data, portMAX_DELAY) == pdTRUE) {
+        if (xQueueReceive(baro_amb_queue, &baro_data, pdMS_TO_TICKS(300)) == pdTRUE) {
             amb_data.press = baro_data.pressure;
         }
-        if (xQueueReceive(termo_queue, &termo_data, portMAX_DELAY) == pdTRUE) {
+        if (xQueueReceive(termo_queue, &termo_data, pdMS_TO_TICKS(300)) == pdTRUE) {
             amb_data.umid = termo_data.humd;
         }
-        if (xQueueReceive(magneto_amb_queue, &magneto_data, portMAX_DELAY) == pdTRUE) {
+        if (xQueueReceive(magneto_amb_queue, &magneto_data, pdMS_TO_TICKS(300)) == pdTRUE) {
             amb_data.mag[0] = magneto_data.x;
             amb_data.mag[1] = magneto_data.y;
             amb_data.mag[2] = magneto_data.z;
@@ -207,12 +232,40 @@ void baro_task(void *args) {
     vTaskDelete(NULL);
 }
 
+void gps_task(void *args) {
+    gps_data_t gps_data;
+
+    for (;;) {
+        vTaskDelay(pdMS_TO_TICKS(100));
+        while (GPS_SERIAL.available() > 0){
+            byte gpsData = GPS_SERIAL.read();
+            gps.encode(gpsData);
+            if (gps.location.isUpdated()) {
+                gps_data.lati = gps.location.lat();
+                gps_data.longi = gps.location.lng();
+            }
+            if (gps.speed.isUpdated()) {
+                gps_data.vel = gps.speed.mps();
+            }
+            if (gps.course.isUpdated()) {
+                gps_data.head = gps.course.deg();
+            }
+            if (gps.altitude.isUpdated()) {
+                gps_data.alt = gps.altitude.meters();
+            }
+        }
+        xQueueSend(gps_queue, &gps_data, pdMS_TO_TICKS(300));
+    }
+    vTaskDelete(NULL);
+}
+
 void setup() {
     Serial.begin(115200);
+    GPS_SERIAL.begin(9600, SERIAL_8N1, GPS_UART_RX_PIN, GPS_UART_TX_PIN);
     Wire.begin();
-
+    
     task_com_init();
-
+    
     if (termo_init() != ESP_OK) {
         Serial.println("[Termo] Falha ao inicializar o sensor");
     }
@@ -233,6 +286,7 @@ void setup() {
     xTaskCreate(magneto_task, "[Magneto] Task", 2048, NULL, 5, NULL);
     xTaskCreate(accel_gyro_task, "[Accel/Gyro] Task", 2048, NULL, 6, NULL);
     xTaskCreate(baro_task, "[Baro] Task", 2048, NULL, 5, NULL);
+    xTaskCreate(gps_task, "[GPS] Task", 2048, NULL, 4, NULL);
     vTaskDelay(pdMS_TO_TICKS(2000));
     xTaskCreate(nav_task, "[Nav] Task", 2048, NULL, 2, NULL);
     xTaskCreate(amb_task, "[Amb] Task", 2048, NULL, 2, NULL);
