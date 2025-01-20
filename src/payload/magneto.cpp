@@ -27,6 +27,7 @@ esp_err_t magneto_init() {
         Serial.println("[Magneto] Falha ao configurar o registrador de controle do sensor");
         return ESP_FAIL;
     }
+    Serial.println("[Magneto] Calibrando o sensor");
     if (magneto_calibrate() != ESP_OK) {
         Serial.println("[Magneto] Falha na calibração do sensor, utilizando valores padrão");
         return ESP_FAIL;
