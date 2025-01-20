@@ -3,7 +3,13 @@
 #include "payload/magneto.h"
 #include "payload/termo.h"
 #include "payload/accel_gyro.h"
+#include "payload/baro.h"
 #include "payload/config.h"
+
+#include <SPI.h>
+#include <Adafruit_BMP085.h>
+
+Adafruit_BMP085 bmp;
 
 void magneto_task(void *args) {
     magneto_data_t mag_data;
@@ -24,7 +30,7 @@ void magneto_task(void *args) {
                 temp += termo_data.temp;
                 humd += termo_data.humd;
             }
-            //vTaskDelay(pdMS_TO_TICKS(100));
+            vTaskDelay(pdMS_TO_TICKS(10));
         }
         mag_data.x = x / 10;
         mag_data.y = y / 10;
@@ -130,6 +136,28 @@ void accel_gyro_task(void *args) {
         //if (accel_read_data(&accel_data) == ESP_OK && gyro_read_data(&gyro_data) == ESP_OK);
         vTaskDelay(pdMS_TO_TICKS(90));
     }
+    vTaskDelete(NULL);
+}
+
+void baro_task(void *args) {
+    baro_data_t data;
+
+    for (;;) {
+        data.pressure = bmp.readPressure() / 100.0;
+        data.temperature = bmp.readTemperature();
+        data.altitude = bmp.readAltitude();
+
+        Serial.print("Temp: ");
+        Serial.print(data.temperature);
+        Serial.print("°C, Press: ");
+        Serial.print(data.pressure);
+        Serial.print("hPa, Alt: ");
+        Serial.print(data.altitude);
+        Serial.println("m");
+
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+    vTaskDelete(NULL);
 }
 
 void setup() {
@@ -142,13 +170,16 @@ void setup() {
         Serial.println("[Termo] Falha ao inicializar o sensor");
     }
     xTaskCreate(magneto_task, "Magneto Task", 2048, NULL, 5, NULL);
-    /*if (accel_gyro_init() != ESP_OK) {
+    if (accel_gyro_init() != ESP_OK) {
         Serial.println("[Accel/Gyro] Falha ao inicializar o sensor");
-    }*/
-
+    }
+    if (!bmp.begin()) {
+    	Serial.println("[Baro] Falha ao inicializar o sensor");
+    }
+    xTaskCreate(baro_task, "Baro Task", 2048, NULL, 5, NULL);
     //xTaskCreate(accel_gyro_task, "Accel Task", 2048, NULL, 5, NULL);
 }
 
 void loop() {
-    
+
 }
