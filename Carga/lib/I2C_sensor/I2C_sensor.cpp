@@ -1,6 +1,6 @@
-#include "I2C_sensor.h"
 #include <Arduino.h>
 #include <Wire.h>
+#include "I2C_sensor.h"
 
 esp_err_t sensor_write_cmd(uint8_t addr, uint8_t cmd) {
     Wire.beginTransmission(addr);

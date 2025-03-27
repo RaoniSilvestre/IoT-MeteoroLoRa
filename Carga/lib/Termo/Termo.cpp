@@ -1,6 +1,6 @@
-#include "Termo.h"
-#include "I2C_sensor.h"
 #include <Arduino.h>
+#include "I2C_sensor.h"
+#include "Termo.h"
 
 #define AHT10_CMD_CALIBRATE 0xE1
 #define AHT10_CMD_RESET 0xBA
