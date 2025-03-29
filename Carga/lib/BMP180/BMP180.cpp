@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <math.h>
 #include "I2C_sensor.h"
-#include "Baro.h"
+#include "BMP180.h"
 
 // Registradores do BMP180
 #define BMP180_REG_CALIB_START   0xAA  // Início dos coeficientes de calibração
