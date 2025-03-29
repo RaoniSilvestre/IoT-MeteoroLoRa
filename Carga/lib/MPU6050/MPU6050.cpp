@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "I2C_sensor.h"
-#include "Accel_gyro.h"
+#include "MPU6050.h"
 
 // Registradores principais
 #define MPU6050_REG_SELF_TEST_X 0x0D
@@ -56,67 +56,67 @@
 #define MPU6050_REG_ZG_OFFSET_MSB 0x17
 #define MPU6050_REG_ZG_OFFSET_LSB 0x18
 
-esp_err_t accel_gyro_init() {
-    if (accel_gyro_pwr_mgmt_1_mode(0x00, 0x00, 0x00, MPU6050_PWR_MGMT_1_CLKSEL_PLL_X) != ESP_OK) {
-        Serial.println("[Accel/Gyro] Falha ao configurar o modo de energia");
+esp_err_t mpu6050_init() {
+    if (mpu6050_pwr_mgmt_1_mode(0x00, 0x00, 0x00, MPU6050_PWR_MGMT_1_CLKSEL_PLL_X) != ESP_OK) {
+        Serial.println("[MPU6050 (Acel/Giro)] Falha ao configurar o modo de energia");
         return ESP_FAIL;
     }
-    if (accel_gyro_set_filter(MPU6050_FILTER_CONFIG_5HZ) != ESP_OK) {
-        Serial.println("[Accel/Gyro] Falha ao configurar o filtro");
+    if (mpu6050_set_filter(MPU6050_FILTER_CONFIG_5HZ) != ESP_OK) {
+        Serial.println("[MPU6050 (Acel/Giro)] Falha ao configurar o filtro");
         return ESP_FAIL;
     }
-    if (accel_set_config(MPU6050_ACCEL_CONFIG_FS_4G) != ESP_OK) {
-        Serial.println("[Accel/Gyro] Falha ao configurar o acelerômetro");
+    if (mpu6050_accel_set_config(MPU6050_ACCEL_CONFIG_FS_4G) != ESP_OK) {
+        Serial.println("[MPU6050 (Acel/Giro)] Falha ao configurar o acelerômetro");
         return ESP_FAIL;
     }
-    if (gyro_set_config(MPU6050_GYRO_CONFIG_FS_500) != ESP_OK) {
-        Serial.println("[Accel/Gyro] Falha ao configurar o giroscópio");
+    if (mpu6050_gyro_set_config(MPU6050_GYRO_CONFIG_FS_500) != ESP_OK) {
+        Serial.println("[MPU6050 (Acel/Giro)] Falha ao configurar o giroscópio");
         return ESP_FAIL;
     }
     return ESP_OK;
 }
 
-esp_err_t accel_gyro_set_filter(uint8_t filter_config) {
-    Serial.printf("[Accel/Gyro] Configurando filtro: 0x%02X\n", filter_config);
+esp_err_t mpu6050_set_filter(uint8_t filter_config) {
+    Serial.printf("[MPU6050 (Acel/Giro)] Configurando filtro: 0x%02X\n", filter_config);
     return sensor_write_reg(MPU6050_ADDRESS, MPU6050_REG_FILTER_CONFIG, filter_config);
 }
 
-esp_err_t accel_gyro_soft_reset() {
-    Serial.println("[Accel/Gyro] Resetando caminho de sinal");
+esp_err_t mpu6050_soft_reset() {
+    Serial.println("[MPU6050 (Acel/Giro)] Resetando caminho de sinal");
     return sensor_write_reg(MPU6050_ADDRESS, MPU6050_REG_SIG_PATH_RESET, MPU6050_SIG_PATH_RESET_TEMP_RST | MPU6050_SIG_PATH_RESET_ACCEL_RST | MPU6050_SIG_PATH_RESET_GYRO_RST);
 }
 
-esp_err_t accel_gyro_hard_reset() {
-    Serial.println("[Accel/Gyro] Resetando o dispositivo");
+esp_err_t mpu6050_hard_reset() {
+    Serial.println("[MPU6050 (Acel/Giro)] Resetando o dispositivo");
     return sensor_write_reg(MPU6050_ADDRESS, MPU6050_REG_PWR_MGMT_1, MPU6050_PWR_MGMT_1_DEVICE_RESET);
 }
 
-esp_err_t accel_gyro_pwr_mgmt_1_mode(uint8_t sleep, uint8_t cycle, uint8_t temp_dis, uint8_t clk_sel) {
+esp_err_t mpu6050_pwr_mgmt_1_mode(uint8_t sleep, uint8_t cycle, uint8_t temp_dis, uint8_t clk_sel) {
     uint8_t pwr_mgmt_1 = sleep | cycle | temp_dis | clk_sel;
-    Serial.printf("[Accel/Gyro] Configurando modo de energia: 0x%02X\n", pwr_mgmt_1);
+    Serial.printf("[MPU6050 (Acel/Giro)] Configurando modo de energia: 0x%02X\n", pwr_mgmt_1);
     return sensor_write_reg(MPU6050_ADDRESS, MPU6050_REG_PWR_MGMT_1, pwr_mgmt_1);
 }
 
-esp_err_t accel_gyro_pwr_mgmt_2_mode(uint8_t lp_wake_ctrl, uint8_t stby_xa, uint8_t stby_ya, uint8_t stby_za, uint8_t stby_xg, uint8_t stby_yg, uint8_t stby_zg) {
+esp_err_t mpu6050_pwr_mgmt_2_mode(uint8_t lp_wake_ctrl, uint8_t stby_xa, uint8_t stby_ya, uint8_t stby_za, uint8_t stby_xg, uint8_t stby_yg, uint8_t stby_zg) {
     uint8_t pwr_mgmt_2 = lp_wake_ctrl | stby_xa | stby_ya | stby_za | stby_xg | stby_yg | stby_zg;
-    Serial.printf("[Accel/Gyro] Configurando modo de energia 2: 0x%02X\n", pwr_mgmt_2);
+    Serial.printf("[MPU6050 (Acel/Giro)] Configurando modo de energia 2: 0x%02X\n", pwr_mgmt_2);
     return sensor_write_reg(MPU6050_ADDRESS, MPU6050_REG_PWR_MGMT_2, pwr_mgmt_2);
 }
 
-esp_err_t accel_set_config(uint8_t accel_fs) {
-    Serial.printf("[Accel/Gyro] Configurando acelerômetro: 0x%02X\n", accel_fs);
+esp_err_t mpu6050_accel_set_config(uint8_t accel_fs) {
+    Serial.printf("[MPU6050 (Acel/Giro)] Configurando acelerômetro: 0x%02X\n", accel_fs);
     return sensor_write_reg(MPU6050_ADDRESS, MPU6050_REG_ACCEL_CONFIG, accel_fs);
 }
 
-esp_err_t gyro_set_config(uint8_t gyro_fs) {
-    Serial.printf("[Accel/Gyro] Configurando giroscópio: 0x%02X\n", gyro_fs);
+esp_err_t mpu6050_gyro_set_config(uint8_t gyro_fs) {
+    Serial.printf("[MPU6050 (Acel/Giro)] Configurando giroscópio: 0x%02X\n", gyro_fs);
     return sensor_write_reg(MPU6050_ADDRESS, MPU6050_REG_GYRO_CONFIG, gyro_fs);
 }
 
-esp_err_t accel_read_data(accel_data_t *data) {
+esp_err_t mpu6050_accel_read_data(accel_data_t *data) {
     uint8_t buffer[6];
     if (sensor_read_reg(MPU6050_ADDRESS, MPU6050_REG_ACCEL_XOUT_MSB, buffer, 6) != ESP_OK) {
-        Serial.println("[Accel/Gyro] Falha ao ler dados do acelerômetro");
+        Serial.println("[MPU6050 (Acel/Giro)] Falha ao ler dados do acelerômetro");
         return ESP_FAIL;
     }
     int16_t raw = (int16_t)(buffer[0] << 8 | buffer[1]);
@@ -128,10 +128,10 @@ esp_err_t accel_read_data(accel_data_t *data) {
     return ESP_OK;
 }
 
-esp_err_t gyro_read_data(gyro_data_t *data) {
+esp_err_t mpu6050_gyro_read_data(gyro_data_t *data) {
     uint8_t buffer[6];
     if (sensor_read_reg(MPU6050_ADDRESS, MPU6050_REG_GYRO_XOUT_MSB, buffer, 6) != ESP_OK) {
-        Serial.println("[Accel/Gyro] Falha ao ler dados do giroscópio");
+        Serial.println("[MPU6050 (Acel/Giro)] Falha ao ler dados do giroscópio");
         return ESP_FAIL;
     }
     int16_t raw = (int16_t)(buffer[0] << 8 | buffer[1]);
@@ -143,10 +143,10 @@ esp_err_t gyro_read_data(gyro_data_t *data) {
     return ESP_OK;
 }
 
-esp_err_t accel_gyro_read_temp(int16_t *temp) {
+esp_err_t mpu6050_read_temp(int16_t *temp) {
     uint8_t buffer[2];
     if (sensor_read_reg(MPU6050_ADDRESS, MPU6050_REG_TEMP_OUT_MSB, buffer, 2) != ESP_OK) {
-        Serial.println("[Accel/Gyro] Falha ao ler temperatura");
+        Serial.println("[MPU6050 (Acel/Giro)] Falha ao ler temperatura");
         return ESP_FAIL;
     }
     *temp = (int16_t)(buffer[0] << 8 | buffer[1]);

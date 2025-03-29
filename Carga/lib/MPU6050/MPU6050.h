@@ -61,20 +61,20 @@ typedef struct {
     float z;
 } gyro_data_t;
 
-esp_err_t accel_gyro_init();
-esp_err_t accel_gyro_set_filter(uint8_t filter_config);
-esp_err_t accel_gyro_soft_reset();
-esp_err_t accel_gyro_hard_reset();
-esp_err_t accel_gyro_pwr_mgmt_1_mode(uint8_t sleep, uint8_t cycle, uint8_t temp_dis, uint8_t clk_sel);
-esp_err_t accel_gyro_pwr_mgmt_2_mode(uint8_t lp_wake_ctrl, uint8_t stby_zg, uint8_t stby_yg, uint8_t stby_xg, uint8_t stby_za, uint8_t stby_ya, uint8_t stby_xa);
+esp_err_t mpu6050_init();
+esp_err_t mpu6050_set_filter(uint8_t filter_config);
+esp_err_t mpu6050_soft_reset();
+esp_err_t mpu6050_hard_reset();
+esp_err_t mpu6050_pwr_mgmt_1_mode(uint8_t sleep, uint8_t cycle, uint8_t temp_dis, uint8_t clk_sel);
+esp_err_t mpu6050_pwr_mgmt_2_mode(uint8_t lp_wake_ctrl, uint8_t stby_zg, uint8_t stby_yg, uint8_t stby_xg, uint8_t stby_za, uint8_t stby_ya, uint8_t stby_xa);
 
-esp_err_t accel_set_config(uint8_t accel_fs);
-esp_err_t gyro_set_config(uint8_t gyro_fs);
+esp_err_t mput0650_accel_set_config(uint8_t accel_fs);
+esp_err_t mput0650_gyro_set_config(uint8_t gyro_fs);
 
-esp_err_t accel_set_offset(int16_t x, int16_t y, int16_t z);
-esp_err_t gyro_set_offset(int16_t x, int16_t y, int16_t z);
+esp_err_t mput0650_accel_set_offset(int16_t x, int16_t y, int16_t z);
+esp_err_t mput0650_gyro_set_offset(int16_t x, int16_t y, int16_t z);
 
-esp_err_t accel_read_data(accel_data_t *data);
-esp_err_t gyro_read_data(gyro_data_t *data);
+esp_err_t mput0650_accel_read_data(accel_data_t *data);
+esp_err_t mput0650_gyro_read_data(gyro_data_t *data);
 
-esp_err_t accel_gyro_read_temp(int16_t *temp);
+esp_err_t mpu6050_read_temp(int16_t *temp);

@@ -32,10 +32,10 @@ typedef struct {
     int16_t z;
 } magneto_data_t;
 
-esp_err_t magneto_init();
-esp_err_t magneto_set_mode(uint8_t mode, uint8_t odr, uint8_t rng, uint8_t osr);
-esp_err_t magneto_soft_reset();
-esp_err_t magneto_calibrate();
-esp_err_t magneto_read_status(uint8_t *status);
-esp_err_t magneto_read_data(magneto_data_t *data);
-esp_err_t magneto_read_temp(int16_t *temp);
+esp_err_t qmc5883l_init();
+esp_err_t qmc5883l_set_mode(uint8_t mode, uint8_t odr, uint8_t rng, uint8_t osr);
+esp_err_t qmc5883l_soft_reset();
+esp_err_t qmc5883l_calibrate();
+esp_err_t qmc5883l_read_status(uint8_t *status);
+esp_err_t qmc5883l_read_data(magneto_data_t *data);
+esp_err_t qmc5883l_read_temp(int16_t *temp);
