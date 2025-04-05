@@ -68,7 +68,43 @@
 #define MPU6050_REG_ZG_OFFSET_LSB 0x18
 
 esp_err_t mpu6050_init(mpu6050_dev_t *dev) {
-    
+    if (dev == NULL) {
+        Serial.println("[MPU6050 (Acel/Giro)] Dispositivo não inicializado");
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    uint8_t who_am_i;
+    if (sensor_read_reg(dev->addr, MPU6050_REG_WHO_AM_I, &who_am_i, 1) != ESP_OK) {
+        Serial.println("[MPU6050 (Acel/Giro)] Falha ao ler ID do dispositivo");
+        return ESP_FAIL;
+    }
+
+    if (who_am_i != MPU6050_ADDRESS) {
+        Serial.printf("[MPU6050 (Acel/Giro)] ID do dispositivo inválido: 0x%02X\n", who_am_i);
+        return ESP_FAIL;
+    }
+    Serial.printf("[MPU6050 (Acel/Giro)] Dispositivo encontrado: 0x%02X\n", who_am_i);
+
+    if (mpu6050_pwr_mgmt_1_mode(dev, 0, 0, 0, MPU6050_PWR_MGMT_1_CLKSEL_PLL_X) != ESP_OK) {
+        Serial.println("[MPU6050 (Acel/Giro)] Falha ao configurar modo de energia");
+        return ESP_FAIL;
+    }
+
+    if (mpu6050_set_filter(dev, dev->filter_config) != ESP_OK) {
+        Serial.println("[MPU6050 (Acel/Giro)] Falha ao configurar filtro");
+        return ESP_FAIL;
+    }
+
+    if (mpu6050_accel_set_config(dev, dev->accel_fs) != ESP_OK) {
+        Serial.println("[MPU6050 (Acel/Giro)] Falha ao configurar acelerômetro");
+        return ESP_FAIL;
+    }
+
+    if (mpu6050_gyro_set_config(dev, dev->gyro_fs) != ESP_OK) {
+        Serial.println("[MPU6050 (Acel/Giro)] Falha ao configurar giroscópio");
+        return ESP_FAIL;
+    }
+
     return ESP_OK;
 }
 
@@ -142,11 +178,6 @@ esp_err_t mpu6050_accel_set_config(mpu6050_dev_t *dev, mpu6050_accel_fs_t accel_
         return ESP_ERR_INVALID_ARG;
     }
 
-    if (accel_fs == dev->accel_fs) {
-        Serial.println("[MPU6050 (Acel/Giro)] Acelerômetro já configurado");
-        return ESP_OK;
-    }
-
     dev->accel_fs = accel_fs;
     uint8_t accel_fs_config = (accel_fs << 3) & 0x18; // Configuração do acelerômetro
     Serial.printf("[MPU6050 (Acel/Giro)] Configurando acelerômetro: 0x%02X\n", accel_fs);
@@ -162,11 +193,6 @@ esp_err_t mpu6050_gyro_set_config(mpu6050_dev_t *dev, mpu6050_gyro_fs_t gyro_fs)
     if (gyro_fs > MPU6050_CONFIG_GFS3 || gyro_fs < MPU6050_CONFIG_GFS0) {
         Serial.println("[MPU6050 (Acel/Giro)] Configuração de giroscópio inválida");
         return ESP_ERR_INVALID_ARG;
-    }
-
-    if (gyro_fs == dev->gyro_fs) {
-        Serial.println("[MPU6050 (Acel/Giro)] Giroscópio já configurado");
-        return ESP_OK;
     }
 
     dev->gyro_fs = gyro_fs;
