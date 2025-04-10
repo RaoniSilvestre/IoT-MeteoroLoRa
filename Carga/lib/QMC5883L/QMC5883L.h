@@ -46,7 +46,6 @@ typedef struct {
     uint8_t addr;
     qmc5883l_config_t sensor_config;
     magneto_data_t offset, scale;
-    float sensor_temp;
 } qmc5883l_dev_t;
 
 esp_err_t qmc5883l_init();
