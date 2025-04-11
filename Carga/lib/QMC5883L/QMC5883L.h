@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include "esp_err.h"
 
-#define QMC5883L_ADDR 0x0D
+#define QMC5883L_ADDR_DEFAULT 0x0D
 
 typedef enum {
     QMC5883L_CONFIG_RNG_2G = 0,
@@ -29,6 +29,11 @@ typedef enum {
     QMC5883L_CONFIG_MODE_CONTINUOUS,
 } qmc5883l_config_mode_t;
 
+typedef enum {
+    QMC5883L_CONFIG_INT_EN = 0,
+    QMC5883L_CONFIG_INT_DIS,
+} qmc5883l_config_int_t;
+
 typedef struct {
     float x;
     float y;
@@ -40,6 +45,7 @@ typedef struct {
     qmc5883l_config_odr_t odr_config;
     qmc5883l_config_osr_t osr_config;
     qmc5883l_config_mode_t mode_config;
+    qmc5883l_config_int_t int_config;
 } qmc5883l_config_t;
 
 typedef struct {
@@ -48,10 +54,12 @@ typedef struct {
     magneto_data_t offset, scale;
 } qmc5883l_dev_t;
 
-esp_err_t qmc5883l_init();
-esp_err_t qmc5883l_set_mode(uint8_t mode, uint8_t odr, uint8_t rng, uint8_t osr);
-esp_err_t qmc5883l_soft_reset();
-esp_err_t qmc5883l_calibrate();
-esp_err_t qmc5883l_read_status(uint8_t *status);
-esp_err_t qmc5883l_read_data(magneto_data_t *data);
+esp_err_t qmc5883l_init(qmc5883l_dev_t *dev, void (*DRDY_ISR)(void));
+esp_err_t qmc5883l_set_config(qmc5883l_dev_t *dev, qmc5883l_config_t *config);
+esp_err_t qmc5883l_set_offset(qmc5883l_dev_t *dev, magneto_data_t *offset);
+esp_err_t qmc5883l_set_scale(qmc5883l_dev_t *dev, magneto_data_t *scale);
+esp_err_t qmc5883l_set_mode(qmc5883l_dev_t *dev, qmc5883l_config_mode_t *mode);
+esp_err_t qmc5883l_soft_reset(qmc5883l_dev_t *dev);
+esp_err_t qmc5883l_calibrate(qmc5883l_dev_t *dev);
+esp_err_t qmc5883l_read_data(qmc5883l_dev_t *dev, magneto_data_t *data);
 esp_err_t qmc5883l_read_temp(float *temp);

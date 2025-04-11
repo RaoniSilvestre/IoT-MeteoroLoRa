@@ -14,6 +14,7 @@
 #define QMC5883L_REG_CTRL_1 0x09
 #define QMC5883L_REG_CTRL_2 0x0A
 #define QMC5883L_REG_SET_RESET_PERIOD 0x0B
+#define QMC5883L_REG_WHO_AM_I 0x0D
 
 #define QMC5883L_CTRL_1_MODE_STANDBY 0x00
 #define QMC5883L_CTRL_1_MODE_CONTINUOUS 0x01
@@ -39,36 +40,54 @@
 float _offset[] = {0, 0, 0};
 float _scale[] = {1, 1, 1};
 
-esp_err_t qmc5883l_init() {
-    if (sensor_write_reg(QMC5883L_ADDR, QMC5883L_REG_SET_RESET_PERIOD, 0x01) != ESP_OK) {
+esp_err_t qmc5883l_init(qmc5883l_dev_t *dev, void (*DRDY_ISR)(void)) {
+    if (dev == NULL) {
+        Serial.println("[QMC5883L (Magneto)] Dispositivo não inicializado");
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    if (dev->addr == 0) {
+        dev->addr = QMC5883L_ADDR_DEFAULT;
+    }
+
+    uint8_t who_am_i;
+
+    if (sensor_read_reg(dev->addr, QMC5883L_REG_WHO_AM_I, &who_am_i) != ESP_OK) {
+        Serial.println("[QMC5883L (Magneto)] Falha ao ler o registrador WHO_AM_I");
+        return ESP_FAIL;
+    }
+
+    if (sensor_write_reg(dev->addr, QMC5883L_REG_SET_RESET_PERIOD, 0x01) != ESP_OK) {
         Serial.println("[QMC5883L (Magneto)] Falha ao configurar o período de reset");
         return ESP_FAIL;
     }
-    if (qmc5883l_set_mode(QMC5883L_CTRL_1_MODE_CONTINUOUS, QMC5883L_CTRL_1_ODR_200HZ, QMC5883L_CTRL_1_RNG_8G, QMC5883L_CTRL_1_OSR_512) != ESP_OK) {
-        Serial.println("[QMC5883L (Magneto)] Falha ao configurar o registrador de controle do sensor");
+
+    if (qmc5883l_set_config(dev, &dev->sensor_config) != ESP_OK) {
+        Serial.println("[QMC5883L (Magneto)] Falha ao configurar o sensor");
         return ESP_FAIL;
     }
-    vTaskDelay(pdMS_TO_TICKS(100));
-    if (qmc5883l_calibrate() != ESP_OK) {
-        Serial.println("[QMC5883L (Magneto)] Falha na calibração do sensor, utilizando valores padrão");
-        return ESP_FAIL;
-    }
+
     return ESP_OK;
 }
 
 esp_err_t qmc5883l_set_mode(uint8_t mode, uint8_t odr, uint8_t rng, uint8_t osr) {
     uint8_t ctrl1 = mode | odr | rng | osr;
     Serial.printf("[QMC5883L (Magneto)] Configurando modo: 0x%02X\n", ctrl1);
-    return sensor_write_reg(QMC5883L_ADDR, QMC5883L_REG_CTRL_1, ctrl1);
+    return sensor_write_reg(QMC5883L_ADDR_DEFAULT, QMC5883L_REG_CTRL_1, ctrl1);
 }
 
-esp_err_t qmc5883l_soft_reset() {
-    Serial.println("[qmc5883l] Resetando o sensor");
-    return sensor_write_reg(QMC5883L_ADDR, QMC5883L_REG_CTRL_2, QMC5883L_CTRL_2_SFT_RST);
+esp_err_t qmc5883l_soft_reset(qmc5883l_dev_t *dev) {
+    if (dev == NULL) {
+        Serial.println("[QMC5883L (Magneto)] Dispositivo não inicializado");
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    Serial.println("[QMC5883L (Magneto] Resetando o sensor");
+    return sensor_write_reg(dev->addr, QMC5883L_REG_CTRL_2, QMC5883L_CTRL_2_SFT_RST);
 }
 
 esp_err_t qmc5883l_read_status(uint8_t *status) {
-    if (sensor_read_reg(QMC5883L_ADDR, QMC5883L_REG_STATUS, status) != ESP_OK) {
+    if (sensor_read_reg(QMC5883L_ADDR_DEFAULT, QMC5883L_REG_STATUS, status) != ESP_OK) {
         Serial.println("[QMC5883L (Magneto)] Falha ao ler status");
         return ESP_FAIL;
     }
@@ -153,7 +172,7 @@ esp_err_t qmc5883l_read_data(magneto_data_t *data) {
         return ESP_FAIL;
     }
     uint8_t buffer[6];
-    if (sensor_read_reg(QMC5883L_ADDR, QMC5883L_REG_X_LSB, buffer, 6) != ESP_OK) {
+    if (sensor_read_reg(QMC5883L_ADDR_DEFAULT, QMC5883L_REG_X_LSB, buffer, 6) != ESP_OK) {
         Serial.println("[QMC5883L (Magneto)] Falha ao ler dados");
         return ESP_FAIL;
     }
@@ -170,7 +189,7 @@ esp_err_t qmc5883l_read_data(magneto_data_t *data) {
 
 esp_err_t qmc5883l_read_temp(float *temp) {
     uint8_t buffer[2];
-    if (sensor_read_reg(QMC5883L_ADDR, QMC5883L_REG_TEMP_LSB, buffer, 2) != ESP_OK) {
+    if (sensor_read_reg(QMC5883L_ADDR_DEFAULT, QMC5883L_REG_TEMP_LSB, buffer, 2) != ESP_OK) {
         Serial.println("[QMC5883L (Magneto)] Falha ao ler temperatura");
         return ESP_FAIL;
     }
