@@ -6,22 +6,22 @@
 #define QMC5883L_ADDR_DEFAULT 0x0D
 
 typedef enum {
-    QMC5883L_CONFIG_RNG_2G = 0,
-    QMC5883L_CONFIG_RNG_8G,
+    QMC5883L_CONFIG_RNG_2G = 0x00,
+    QMC5883L_CONFIG_RNG_8G = 0x10,
 } qmc5883l_config_rng_t;
 
 typedef enum {
-    QMC5883L_CONFIG_ODR_10HZ = 0,
-    QMC5883L_CONFIG_ODR_50HZ,
-    QMC5883L_CONFIG_ODR_100HZ,
-    QMC5883L_CONFIG_ODR_200HZ,
+    QMC5883L_CONFIG_ODR_10HZ = 0x00,
+    QMC5883L_CONFIG_ODR_50HZ = 0x04,
+    QMC5883L_CONFIG_ODR_100HZ = 0x08,
+    QMC5883L_CONFIG_ODR_200HZ = 0x0C,
 } qmc5883l_config_odr_t;
 
 typedef enum {
-    QMC5883L_CONFIG_OSR_512 = 0,
-    QMC5883L_CONFIG_OSR_256,
-    QMC5883L_CONFIG_OSR_128,
-    QMC5883L_CONFIG_OSR_64,
+    QMC5883L_CONFIG_OSR_512 = 0x00,
+    QMC5883L_CONFIG_OSR_256 = 0x20,
+    QMC5883L_CONFIG_OSR_128 = 0x40,
+    QMC5883L_CONFIG_OSR_64 = 0x60,
 } qmc5883l_config_osr_t;
 
 typedef enum {
@@ -33,6 +33,12 @@ typedef enum {
     QMC5883L_CONFIG_INT_EN = 0,
     QMC5883L_CONFIG_INT_DIS,
 } qmc5883l_config_int_t;
+
+typedef struct {
+    uint8_t data_ready;
+    uint8_t overflow;
+    uint8_t data_skip;
+} qmc5883l_status_t;
 
 typedef struct {
     float x;
@@ -52,14 +58,15 @@ typedef struct {
     uint8_t addr;
     qmc5883l_config_t sensor_config;
     magneto_data_t offset, scale;
+    qmc5883l_status_t status;
 } qmc5883l_dev_t;
 
 esp_err_t qmc5883l_init(qmc5883l_dev_t *dev, void (*DRDY_ISR)(void));
 esp_err_t qmc5883l_set_config(qmc5883l_dev_t *dev, qmc5883l_config_t *config);
 esp_err_t qmc5883l_set_offset(qmc5883l_dev_t *dev, magneto_data_t *offset);
 esp_err_t qmc5883l_set_scale(qmc5883l_dev_t *dev, magneto_data_t *scale);
-esp_err_t qmc5883l_set_mode(qmc5883l_dev_t *dev, qmc5883l_config_mode_t *mode);
 esp_err_t qmc5883l_soft_reset(qmc5883l_dev_t *dev);
+esp_err_t qmc5883l_read_status(qmc5883l_dev_t *dev);
 esp_err_t qmc5883l_calibrate(qmc5883l_dev_t *dev);
 esp_err_t qmc5883l_read_data(qmc5883l_dev_t *dev, magneto_data_t *data);
 esp_err_t qmc5883l_read_temp(float *temp);
