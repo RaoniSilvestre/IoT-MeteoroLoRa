@@ -16,24 +16,6 @@
 #define QMC5883L_REG_SET_RESET_PERIOD 0x0B
 #define QMC5883L_REG_WHO_AM_I 0x0D
 
-#define QMC5883L_CTRL_1_MODE_STANDBY 0x00
-#define QMC5883L_CTRL_1_MODE_CONTINUOUS 0x01
-
-#define QMC5883L_CTRL_1_ODR_10HZ 0x00
-#define QMC5883L_CTRL_1_ODR_50HZ 0x04
-#define QMC5883L_CTRL_1_ODR_100HZ 0x08
-#define QMC5883L_CTRL_1_ODR_200HZ 0x0C
-
-#define QMC5883L_CTRL_1_RNG_2G 0x00
-#define QMC5883L_CTRL_1_RNG_8G 0x10
-
-#define QMC5883L_CTRL_1_OSR_512 0x00
-#define QMC5883L_CTRL_1_OSR_256 0x20
-#define QMC5883L_CTRL_1_OSR_128 0x40
-#define QMC5883L_CTRL_1_OSR_64 0x60
-
-#define QMC5883L_CTRL_2_INT_DIS 0x00
-#define QMC5883L_CTRL_2_INT_ENA 0x01
 #define QMC5883L_CTRL_2_ROL_PNT 0x40
 #define QMC5883L_CTRL_2_SFT_RST 0x80
 
@@ -200,13 +182,12 @@ esp_err_t qmc5883l_read_data(qmc5883l_dev_t *dev, magneto_data_t *data) {
         Serial.println("[QMC5883L (Magneto)] Falha ao ler dados");
         return ESP_FAIL;
     }
-    data->x = (int16_t)(buffer[1] << 8 | buffer[0]);
-    data->y = (int16_t)(buffer[3] << 8 | buffer[2]);
-    data->z = (int16_t)(buffer[5] << 8 | buffer[4]);
 
-    data->x = (data->x - _offset[0]) * _scale[0];
-    data->y = (data->y - _offset[1]) * _scale[1];
-    data->z = (data->z - _offset[2]) * _scale[2];
+    uint16_t scale = dev->sensor_config.rng_config == QMC5883L_CONFIG_RNG_2G ? 12000 : 3000;
+
+    data->x = ((int16_t)(buffer[1] << 8 | buffer[0])) / scale;
+    data->y = ((int16_t)(buffer[3] << 8 | buffer[2])) / scale;
+    data->z = ((int16_t)(buffer[5] << 8 | buffer[4])) / scale;
 
     return ESP_OK;
 }
