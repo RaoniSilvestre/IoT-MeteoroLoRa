@@ -34,7 +34,7 @@ esp_err_t qmc5883l_init(qmc5883l_dev_t *dev, void (*DRDY_ISR)(void)) {
 
     uint8_t who_am_i;
 
-    if (sensor_read_reg(dev->addr, QMC5883L_REG_WHO_AM_I, &who_am_i) != ESP_OK) {
+    if (sensor_read_reg(dev->addr, QMC5883L_REG_WHO_AM_I, &who_am_i, 1) != ESP_OK) {
         Serial.println("[QMC5883L (Magneto)] Falha ao ler o registrador WHO_AM_I");
         return ESP_FAIL;
     }
@@ -71,6 +71,8 @@ esp_err_t qmc5883l_set_config(qmc5883l_dev_t *dev, qmc5883l_config_t *config) {
         return ESP_FAIL;
     }
 
+    dev->sensor_config = *config;
+
     return ESP_OK;
 }
 
@@ -91,7 +93,7 @@ esp_err_t qmc5883l_read_status(qmc5883l_dev_t *dev) {
     }
     
     uint8_t status_reg;
-    if (sensor_read_reg(dev->addr, QMC5883L_REG_STATUS, &status_reg) != ESP_OK) {
+    if (sensor_read_reg(dev->addr, QMC5883L_REG_STATUS, &status_reg, 1) != ESP_OK) {
         Serial.println("[QMC5883L (Magneto)] Falha ao ler o registrador de status");
         return ESP_FAIL;
     }
